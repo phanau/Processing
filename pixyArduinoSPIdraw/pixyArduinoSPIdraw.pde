@@ -23,7 +23,7 @@ void setup()
   colors[2] = color(0, 255, 0);
   colors[3] = color(0, 0, 255);
   
-  frameRate(60);  // slow down for testing
+  //frameRate(60);  // slow down for testing
   
   // Open whatever port is the one you're using.
   String portName = Serial.list()[3]; //change to match your port
@@ -34,8 +34,23 @@ void setup()
  
 void draw()
 { 
+  // measure comm backlog
+  int available = myPort.available();
 
-  String msg = " ";
+  String msg = "";
+
+  // if we're getting behind, dump data
+  boolean atMsgStart = false;
+  while (myPort.available() > 200 && !atMsgStart) {
+    char c = myPort.readChar();
+    print("<"+c+">");
+    if (c == 'E')
+      atMsgStart = true;
+  }
+
+  //println("available before:" + available + "  after: " + myPort.available());
+
+  // get input message, if any is available
   while (myPort.available() > 0) {
     msg = myPort.readStringUntil('\n');
     if (msg != null) {
@@ -44,9 +59,14 @@ void draw()
     }
   }
 
-  if (msg == null)
+  if (msg == null) {
+    println("null msg");
     return;
-      
+  }
+   
+  //print(msg);
+  
+  // split the message into tokens separated by spaces
   String[] tokens = split(msg, ' ');
     
   pg.beginDraw();
@@ -82,8 +102,9 @@ void draw()
   }
   
   pg.endDraw();
-   
-  background(0);  // clear the display
+    
+  if (state == State.WAITING_FOR_D)
+    background(0);  // clear the display
   image(pg,0,0);
   
 }
