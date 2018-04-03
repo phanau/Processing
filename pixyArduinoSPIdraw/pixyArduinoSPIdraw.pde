@@ -18,10 +18,11 @@ void setup()
   size(768,600, P3D);
   pg = createGraphics(width,height);
   
-  colors = new color[4];
+  colors = new color[5];
   colors[1] = color(255, 0, 0);
   colors[2] = color(0, 255, 0);
   colors[3] = color(0, 0, 255);
+  colors[4] = color(255, 255, 0);
   
   //frameRate(60);  // slow down for testing
   
@@ -34,37 +35,22 @@ void setup()
  
 void draw()
 { 
-  // measure comm backlog
-  int available = myPort.available();
-
   String msg = "";
-
-  // if we're getting behind, dump data
-  boolean atMsgStart = false;
-  while (myPort.available() > 200 && !atMsgStart) {
-    char c = myPort.readChar();
-    print("<"+c+">");
-    if (c == 'E')
-      atMsgStart = true;
-  }
-
-  //println("available before:" + available + "  after: " + myPort.available());
 
   // get input message, if any is available
   while (myPort.available() > 0) {
     msg = myPort.readStringUntil('\n');
     if (msg != null) {
-      //print(msg);
       break;
     }
   }
 
-  if (msg == null) {
-    println("null msg");
+  if (msg.length() == 0) {
+    println("no msg");
     return;
   }
    
-  //print(msg);
+  print(msg);
   
   // split the message into tokens separated by spaces
   String[] tokens = split(msg, ' ');
@@ -81,7 +67,7 @@ void draw()
       }
       break;
     case PROCESSING_B:
-      if (tokens[0].equals("B") && tokens.length == 6) {
+      if (tokens[0].equals("B")) {
         // parse and draw one block
         int sig = int(tokens[1]);
         float x = float(tokens[2])*scale;
@@ -91,9 +77,9 @@ void draw()
         pg.fill(colors[sig]);    // signature
         pg.ellipse(x, y, w, h);
       }
-      else
-      {
+      else {
         state = State.WAITING_FOR_D;
+        myPort.write("E");  // send ACK to Arduino
       }
       break;
     default:
