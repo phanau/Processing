@@ -13,7 +13,7 @@ float scale = 3.0;
 
 PGraphics pg;
 
-long frameTime, loopTime;
+long loopTime;
 
 void setup()
 {
@@ -26,7 +26,7 @@ void setup()
   colors[3] = color(0, 0, 255);
   colors[4] = color(255, 255, 0);
   
-  //frameRate(60);  // slow down for testing
+  frameRate(50);  // match PixyCam frame rate
   
   // Open whatever port is the one you're using.
   String portName = Serial.list()[3]; //change to match your port
@@ -34,7 +34,7 @@ void setup()
   myPort = new Serial(this, portName, 230400);
   myPort.clear();  
   
-  frameTime = loopTime = System.currentTimeMillis();
+  loopTime = System.currentTimeMillis();
 }
  
 void draw()
@@ -61,46 +61,42 @@ void draw()
     
   pg.beginDraw();
   
-  switch(state) {
+  for (int tix = 0; tix < tokens.length;) {
     
-    case WAITING_FOR_D:
-      if (tokens[0].equals("D")) {
-        count = int(tokens[1]);
+      if (tokens[tix].equals("D")) {
+        tix++;
+        count = int(tokens[tix]);
         pg.clear();
         state = State.PROCESSING_B;
       }
-      break;
-    case PROCESSING_B:
-      if (tokens[0].equals("B")) {
+      else
+      if (tokens[tix].equals("B")) {
         // parse and draw one block
-        int sig = int(tokens[1]);
-        float x = float(tokens[2])*scale;
-        float y = float(tokens[3])*scale;
-        float w = float(tokens[4])*scale;
-        float h = float(tokens[5])*scale;
+        int sig = int(tokens[tix+1]);
+        float x = float(tokens[tix+2])*scale;
+        float y = float(tokens[tix+3])*scale;
+        float w = float(tokens[tix+4])*scale;
+        float h = float(tokens[tix+5])*scale;
+        tix += 6;
         pg.fill(colors[sig]);    // signature
         pg.ellipse(x, y, w, h);
       }
-      else {
-        state = State.WAITING_FOR_D;
+      else 
+      if (tokens[tix].equals("E")) {
         myPort.write("E");  // send ACK to Arduino
+        tix++;
       }
-      break;
-    default:
-      println("error: bad State");
-      break;
+      else
+        tix++;
+    
   }
   
   pg.endDraw();
     
   long now = System.currentTimeMillis();
 
-  if (state == State.WAITING_FOR_D) {
-    background(0);  // clear the display
-    image(pg,0,0);
-    text(now - frameTime, 20, 30);
-    frameTime = now;
-  }
+  background(0);  // clear the display
+  image(pg,0,0);
 
   text(now - loopTime, 20, 50);
   loopTime = now;
