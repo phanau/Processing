@@ -13,6 +13,8 @@ float scale = 3.0;
 
 PGraphics pg;
 
+long frameTime, loopTime;
+
 void setup()
 {
   size(768,600, P3D);
@@ -30,7 +32,9 @@ void setup()
   String portName = Serial.list()[3]; //change to match your port
   println(portName);
   myPort = new Serial(this, portName, 230400);
-  myPort.clear();   
+  myPort.clear();  
+  
+  frameTime = loopTime = System.currentTimeMillis();
 }
  
 void draw()
@@ -89,8 +93,16 @@ void draw()
   
   pg.endDraw();
     
-  if (state == State.WAITING_FOR_D)
+  long now = System.currentTimeMillis();
+
+  if (state == State.WAITING_FOR_D) {
     background(0);  // clear the display
-  image(pg,0,0);
-  
+    image(pg,0,0);
+    text(now - frameTime, 20, 30);
+    frameTime = now;
+  }
+
+  text(now - loopTime, 20, 50);
+  loopTime = now;
+
 }
