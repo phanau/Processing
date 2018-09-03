@@ -435,16 +435,18 @@ void setup() {    // Customize this and the draw loop by adding my own media
   //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png").filter(GRAY).filter(BLUR,4));
   
   // a simple Layer that plays a Movie (that is upside down for some reason)
-  layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "RiverCloseup.mp4"))).rotation(180); // rotates around center of layer and window
+  //layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "RiverCloseup.mp4"))).rotation(180); // rotates around center of layer and window
   
   // another simple Movie layer
-  layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "AfternoonSky-20fps-High.mov"))).transparency(0.5f);
+  //layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "AfternoonSky-20fps-High.mov"))).transparency(0.5f);
   
   // a simple Layer consisting of the default camera (here, flipped horizontally to act like a mirror)
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height))).flip(true,false); // flip(horizontal,vertical)
   
   // a Layer consisting of a camera, flipped horizontally to act like a mirror, and run through several filters
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(DILATE,2).filter(ERODE,2).filter(POSTERIZE,4)).flip(true,false); // flip(horizontal,vertical)
+  //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(DILATE,4).filter(ERODE,4).filter(POSTERIZE,2).filter(GRAY)).flip(true,false); // flip(horizontal,vertical)
+  layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,2).filter(GRAY).filter(DILATE,4).filter(ERODE,4)).flip(true,false); // flip(horizontal,vertical)
 
   // a Layer that shows a static image masked by another static image; the "rotation" call on the end causes it to be displayed rotated 30 degrees
   //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png")).mask(new ImageSource("ABSOLVE_BW.png")).rotation(30);
