@@ -2,6 +2,74 @@
   
 import processing.video.*;
 
+
+// implementation of a custom edge-finding filter
+float[][] kernel = {{ -1, -1, -1}, 
+                    { -1,  9, -1}, 
+                    { -1, -1, -1}};
+
+PImage EdgeFilterGray(PImage img) {
+  img.loadPixels();
+  // Create an opaque image of the same size as the original
+  PImage edgeImg = createImage(img.width, img.height, RGB);
+  // Loop through every pixel in the image.
+  for (int y = 1; y < img.height-1; y++) { // Skip top and bottom edges
+    for (int x = 1; x < img.width-1; x++) { // Skip left and right edges
+      float sum = 0; // Kernel sum for this pixel
+      for (int ky = -1; ky <= 1; ky++) {
+        for (int kx = -1; kx <= 1; kx++) {
+          // Calculate the adjacent pixel for this kernel point
+          int pos = (y + ky)*img.width + (x + kx);
+          // Image is grayscale, red/green/blue are identical
+          float val = red(img.pixels[pos]);
+          // Multiply adjacent pixels based on the kernel values
+          sum += kernel[ky+1][kx+1] * val;
+        }
+      }
+      // For this pixel in the new image, set the gray value
+      // based on the sum from the kernel
+      edgeImg.pixels[y*img.width + x] = color(sum, sum, sum);
+    }
+  }
+  // State that there are changes to edgeImg.pixels[]
+  edgeImg.updatePixels();
+  return edgeImg;
+}
+
+PImage EdgeFilterColor(PImage img) {
+  img.loadPixels();
+  // Create an opaque image of the same size as the original
+  PImage edgeImg = createImage(img.width, img.height, RGB);
+  // Loop through every pixel in the image.
+  for (int y = 1; y < img.height-1; y++) { // Skip top and bottom edges
+    for (int x = 1; x < img.width-1; x++) { // Skip left and right edges
+      float sumR = 0; // Kernel sum for this pixel
+      float sumG = 0; // Kernel sum for this pixel
+      float sumB = 0; // Kernel sum for this pixel
+      for (int ky = -1; ky <= 1; ky++) {
+        for (int kx = -1; kx <= 1; kx++) {
+          // Calculate the adjacent pixel for this kernel point
+          int pos = (y + ky)*img.width + (x + kx);
+          // Multiply adjacent pixels based on the kernel values
+          sumR += kernel[ky+1][kx+1] * red(img.pixels[pos]);
+          sumG += kernel[ky+1][kx+1] * green(img.pixels[pos]);
+          sumB += kernel[ky+1][kx+1] * blue(img.pixels[pos]);
+        }
+      }
+      // For this pixel in the new image, set the gray value
+      // based on the sum from the kernel
+      edgeImg.pixels[y*img.width + x] = color(sumR, sumG, sumB);
+    }
+  }
+  // State that there are changes to edgeImg.pixels[]
+  edgeImg.updatePixels();
+  return edgeImg;
+}
+
+final int EDGEFILTERGRAY=-1;
+final int EDGEFILTERCOLOR=-2;
+
+
 // helper function to disguise unfortunate fact that Processing filter() function is fussy about presence of param
 void myFilter(PImage image, int kind, float param) {
   switch(kind) {
@@ -19,6 +87,13 @@ void myFilter(PImage image, int kind, float param) {
     case DILATE:
       for (int i=0; i<param; i++)    // interpret param as how many times to do it
         image.filter(kind);
+      break;
+    case EDGEFILTERGRAY:
+      image.set(0,0,EdgeFilterGray(image));
+      break;
+    case EDGEFILTERCOLOR:
+      image.set(0,0,EdgeFilterColor(image));
+      break;      
     default:
       break;
   }
@@ -446,7 +521,9 @@ void setup() {    // Customize this and the draw loop by adding my own media
   // a Layer consisting of a camera, flipped horizontally to act like a mirror, and run through several filters
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(DILATE,2).filter(ERODE,2).filter(POSTERIZE,4)).flip(true,false); // flip(horizontal,vertical)
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(DILATE,4).filter(ERODE,4).filter(POSTERIZE,2).filter(GRAY)).flip(true,false); // flip(horizontal,vertical)
-  layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,2).filter(GRAY).filter(DILATE,4).filter(ERODE,4)).flip(true,false); // flip(horizontal,vertical)
+  //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,2).filter(GRAY).filter(DILATE,4).filter(ERODE,4)).flip(true,false); // flip(horizontal,vertical)
+  //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,4).filter(EDGEFILTERGRAY)).flip(true,false); // flip(horizontal,vertical)
+  layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,4).filter(EDGEFILTERCOLOR)).flip(true,false); // flip(horizontal,vertical)
 
   // a Layer that shows a static image masked by another static image; the "rotation" call on the end causes it to be displayed rotated 30 degrees
   //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png")).mask(new ImageSource("ABSOLVE_BW.png")).rotation(30);
@@ -469,6 +546,10 @@ void setup() {    // Customize this and the draw loop by adding my own media
   // a Layer that shows a Movie masked by a camera that has been run through one or more filters
   //layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "RiverCloseup.mp4")).filter(POSTERIZE,4)).mask(new CameraSource(new Capture(this, width, height)).filter(THRESHOLD,0.5)).flip(true,false);
   //layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "RiverCloseup.mp4"))).mask(new CameraSource(new Capture(this, width, height)).filter(GRAY).filter(POSTERIZE,4)).flip(true,false);
+
+  // a Layer that shows a Movie that has been run through one or more filters
+  //layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "RiverCloseup.mp4")).filter(POSTERIZE,4).filter(EDGEFILTERGRAY));
+  //layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "RiverCloseup.mp4")).filter(POSTERIZE,4).filter(EDGEFILTERCOLOR));
 
   // a Layer that shows the camera masked by a static image that has some filters applied to it
   //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png")).mask(new CameraSource(new Capture(this, width, height)).filter(GRAY).filter(POSTERIZE,4)).flip(true,false);
