@@ -2,7 +2,7 @@
   
 import processing.video.*;
 
-
+// from https://processing.org/examples/edgedetection.html
 // implementation of a custom edge-finding filter
 float[][] kernel = {{ -1, -1, -1}, 
                     { -1,  9, -1}, 
@@ -493,7 +493,7 @@ void setup() {    // Customize this and the draw loop by adding my own media
   colorMode(RGB, 1.0);
   
   // generate a unique folder identifier in case we save any frames by concatenating year-month-day-hour-minute-second start time of program
-  guid = String.valueOf(year())+"-"+String.valueOf(month())+"-"+String.valueOf(day())+"-"+String.valueOf(hour())+";"+String.valueOf(minute())+";"+String.valueOf(second());
+  guid = String.valueOf(year())+"-"+String.valueOf(month())+"-"+String.valueOf(day())+"-"+String.valueOf(hour())+"-"+String.valueOf(minute())+"-"+String.valueOf(second());
 
   // create and initialize all the Layers with their respective Movies, rotations, and mask images
   int indx = 0;
@@ -523,7 +523,7 @@ void setup() {    // Customize this and the draw loop by adding my own media
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(DILATE,4).filter(ERODE,4).filter(POSTERIZE,2).filter(GRAY)).flip(true,false); // flip(horizontal,vertical)
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,2).filter(GRAY).filter(DILATE,4).filter(ERODE,4)).flip(true,false); // flip(horizontal,vertical)
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,4).filter(EDGEFILTERGRAY)).flip(true,false); // flip(horizontal,vertical)
-  layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,4).filter(EDGEFILTERCOLOR)).flip(true,false); // flip(horizontal,vertical)
+  layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,3).filter(EDGEFILTERCOLOR)).flip(true,false); // flip(horizontal,vertical)
 
   // a Layer that shows a static image masked by another static image; the "rotation" call on the end causes it to be displayed rotated 30 degrees
   //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png")).mask(new ImageSource("ABSOLVE_BW.png")).rotation(30);
@@ -581,6 +581,9 @@ void setup() {    // Customize this and the draw loop by adding my own media
   mTime = millis();
 }
 
+int frameNumber=0;
+boolean bMovieSaved = false;        // ... since last frame save
+int movieNumber=0;
 
 void draw() {
   // draw all the Layers to the screen
@@ -590,13 +593,46 @@ void draw() {
       l.draw();
  
   // if user presses the 's' key, save the current frame to a file
-  if (keyPressed && key=='s')
-    saveFrame("saveFrame"+guid+"/frame-#####.tif");
-    
+  if (keyPressed && key=='s') {
+    saveFrame("saveFrame"+guid+"/frame-"+ ++frameNumber +".jpg");
+    bMovieSaved = false;
+  }
+  
+  // if user presses 'S', convert the current frame folder to a movie file
+  if (keyPressed && key=='S') {
+    generateMovie();
+    bMovieSaved = true;
+  }
+  
   // post frame time
   int t = millis();
   int dt = t - mTime;
   mTime = t;
   println("frame time: " + dt);
+}
 
+// ffmpeg -r 6 -i "saveFrame2018-9-3-10-54-44/frame-%d.jpg" "saveFrame2018-9-3-10-54-44/movie.mp4" 
+void generateMovie()
+{
+  if (!bMovieSaved) {
+    println("Making movie file >" , "/usr/local/bin/ffmpeg", "-r", "6", "-i", sketchPath("saveFrame"+guid+"/frame-%d.jpg"), sketchPath("saveFrame"+guid+"/movie"+movieNumber+".mp4") );
+    ProcessBuilder pb = new ProcessBuilder(
+        "/usr/local/bin/ffmpeg", "-r", "6", "-i", sketchPath("saveFrame"+guid+"/frame-%d.jpg"), sketchPath("saveFrame"+guid+"/movie"+movieNumber+".mp4"));
+    //pb.directory(new File("saveFrame"+guid));
+    println("working dir = " + pb.directory());
+    File log = new File("log.txt");
+    pb.redirectErrorStream(true);
+    pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log));
+    try {
+      Process process = pb.start();
+      assert pb.redirectInput() == ProcessBuilder.Redirect.PIPE;
+      assert pb.redirectOutput().file() == log;
+      assert process.getInputStream().read() == -1;
+      process.waitFor();
+      println("done!");
+      movieNumber++;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }
