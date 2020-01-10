@@ -611,6 +611,7 @@ void draw() {
   println("frame time: " + dt);
 }
 
+// http://hamelot.io/visualization/using-ffmpeg-to-convert-a-set-of-images-into-a-video/
 // ffmpeg -r 6 -i "saveFrame2018-9-3-10-54-44/frame-%d.jpg" "saveFrame2018-9-3-10-54-44/movie.mp4" 
 void generateMovie()
 {
