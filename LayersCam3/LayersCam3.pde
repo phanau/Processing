@@ -516,21 +516,21 @@ void setup() {    // Customize this and the draw loop by adding my own media
   //layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "AfternoonSky-20fps-High.mov"))).transparency(0.5f);
   
   // a simple Layer consisting of the default camera (here, flipped horizontally to act like a mirror)
-  //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height))).flip(true,false); // flip(horizontal,vertical)
+  layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height))).flip(true,false); // flip(horizontal,vertical)
   
   // a Layer consisting of a camera, flipped horizontally to act like a mirror, and run through several filters
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(DILATE,2).filter(ERODE,2).filter(POSTERIZE,4)).flip(true,false); // flip(horizontal,vertical)
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(DILATE,4).filter(ERODE,4).filter(POSTERIZE,2).filter(GRAY)).flip(true,false); // flip(horizontal,vertical)
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,2).filter(GRAY).filter(DILATE,4).filter(ERODE,4)).flip(true,false); // flip(horizontal,vertical)
   //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,4).filter(EDGEFILTERGRAY)).flip(true,false); // flip(horizontal,vertical)
-  layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,3).filter(EDGEFILTERCOLOR)).flip(true,false); // flip(horizontal,vertical)
+  //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height)).filter(POSTERIZE,3).filter(EDGEFILTERCOLOR)).flip(true,false); // flip(horizontal,vertical)
+
+  // a Layer that shows a static image masked by another static image
+  //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png")).mask(new ImageSource("ABSOLVE_BW.png"));
 
   // a Layer that shows a static image masked by another static image; the "rotation" call on the end causes it to be displayed rotated 30 degrees
   //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png")).mask(new ImageSource("ABSOLVE_BW.png")).rotation(30);
   
-  // a Layer that shows a static image masked by another static image
-  //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png")).mask(new ImageSource("ABSOLVE_BW.png"));
-
   // a Layer that shows a static image; the call on the end causes it to be displayed 25% transparent
   //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png")).transparency(0.25);
   
@@ -542,6 +542,9 @@ void setup() {    // Customize this and the draw loop by adding my own media
   
   // a Layer that shows a static image masked by the camera
   //layers[indx++] = new SourceLayer(new ImageSource("jupiter1.png")).mask(new CameraSource(new Capture(this, width, height)));
+
+  // a Layer that shows the camera masked by a static image
+  //layers[indx++] = new SourceLayer(new CameraSource(new Capture(this, width, height))).mask(new ImageSource("jupiter1.png"));
 
   // a Layer that shows a Movie masked by a camera that has been run through one or more filters
   //layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "RiverCloseup.mp4")).filter(POSTERIZE,4)).mask(new CameraSource(new Capture(this, width, height)).filter(THRESHOLD,0.5)).flip(true,false);
@@ -567,9 +570,9 @@ void setup() {    // Customize this and the draw loop by adding my own media
   //layers[indx++] = new SourceLayer(new MovieSource(new Movie(this, "RiverCloseup.mp4"))).mask(new MovieSource(new Movie(this, "RiverCloseup.mp4"))).rotation(180);
   
   // a Layer that displays some text that can wander around and bounce off the sides of the frame and be changed in other ways after creation
-  //layers[indx++] = new TextLayer("And this is some wandering text.").font("ACaslonPro-Bold-150.vlw").position(100, 100).size(32).textColor(color(1,0.5,0,1.0)).velocity(2, 1);
-  //layers[indx++] = new TextLayer("some more text.").font("ACaslonPro-Bold-150.vlw").position(300, 100).size(32).textColor(color(0.5,0,1.0,1)).velocity(2, -1);
-  //layers[indx++] = new TextLayer("This is some fixed text.").position(100, 200);
+  layers[indx++] = new TextLayer("And this is some wandering text.").font("ACaslonPro-Bold-150.vlw").position(100, 100).size(32).textColor(color(1,0.5,0,1.0)).velocity(2, 1);
+  layers[indx++] = new TextLayer("some more text.").font("ACaslonPro-Bold-150.vlw").position(300, 100).size(32).textColor(color(0.5,0,1.0,1)).velocity(2, -1);
+  layers[indx++] = new TextLayer("This is some fixed text.").position(100, 200);
 
  
   // start all the Layers playing in "loop" mode
